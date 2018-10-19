@@ -1,19 +1,24 @@
 # iot-platform-within-azure
 
-How to create an IoT platform with Microsoft Azure Cloud.
+How to create an IoT platform within Microsoft Azure Cloud with Azure CLI.
 
 ## Architecture 
 
 Let's create a simple IoT platform with the following services :
-- IoT Hub
-- Functions
-- CosmosDB
 
-Futhermore, it is also possible to create a simulated device within Azure Cloud.
+- Azure IoT Hub
+- Azure Functions
+- Azure CosmosDB
+- Azure Service Bus
+- Azure Storage
+
+Futhermore, we will also create a simulated device within Azure Cloud to send and receive message.
 
 ## Installation of Azure cli
 
-    // On Mac 
+Let's install azure-cli 
+
+    // For Mac 
     brew update && brew install azure-cli
 
 ## Connection to Azure Cloud with Azure cli
@@ -28,41 +33,30 @@ Futhermore, it is also possible to create a simulated device within Azure Cloud.
     
 ### Set the values for the resource names
 
-    //list location codes
-    az account list-locations
-    // we select 'francecentral'
-    location="westeurope" # location in france, iot hub is not available
-    resourceGroup="ConnectedBarResources"
+    location="westeurope" # for location in france, iot hub is not available
+    iotResourceGroup="ConnectedBarResources"
     iotHubConsumerGroup="ConnectedBarHubConsumers"
-    iotCosmosName='connected-bar-cosmos'
+    iotCosmosName="connected-bar-cosmos"
     iotCosmosDBName="connected-bar-cosmosdb"
-    iotCosmosCollectionName='connected-bar-collection'
+    iotCosmosCollectionName="connected-bar-collection"
     iotStorageName="connectedbarstorage"
     iotFunctionAppName="connected-bar-function-app"
     iotDeviceName="ConnectedBarDevice"
     
 ### Create the resource group to be used for all the resources for this tutorial.
     
-    az group create --name $resourceGroup --location $location
+Within Azure services for the same project are taged by a resource group. Let's create one for our project.
+
+    az group create --name $iotResourceGroup--location $location
     
-        {
-          "id": "/subscriptions/c6d07ac4-279c-4570-abac-e8e739a477d6/resourceGroups/ConnectedBarResources",
-          "location": "francecentral",
-          "managedBy": null,
-          "name": "ConnectedBarResources",
-          "properties": {
-            "provisioningState": "Succeeded"
-          },
-          "tags": null
-        }
-    
+### Create the IoT hub
+   
+Let's create a free IoT Hub to interact with the external IoT world.
+
     // The IoT hub name must be globally unique, so add a random number to the end.
     iotHubName="ConnectedBarHub$RANDOM"
     echo "IoT hub name = " $iotHubName
-    
-### Create the IoT hub.
-   
-    az iot hub create --name $iotHubName --resource-group $resourceGroup --sku F1 --location $location
+    az iot hub create --name $iotHubName --resource-group $iotResourceGroup--sku F1 --location $location
     
 ### Add a consumer group to the IoT hub.
     
@@ -72,24 +66,24 @@ Futhermore, it is also possible to create a simulated device within Azure Cloud.
     
     az iot hub device-identity create --device-id $iotDeviceName --hub-name $iotHubName
     
-    // Retrieve the information about the device identity, then copy the primary key to
-    // "primaryKey": "d3X+L/r1vW6pFBCdqSAjfw7OO9RlQCE2NHQc5/JwK9w="
-    //   Notepad. You need this to run the device simulation during the testing phase.
+Retrieve the information about the device identity, then copy the connection-string (hostname=...=) in your code.
+
     az iot hub device-identity show-connection-string --hub-name $iotHubName --device-id $iotDeviceName --output table
-    
-    HostName=ConnectedBarHub9449.azure-devices.net;DeviceId=ConnectedBarDevice;SharedAccessKey=d3X+L/r1vW6pFBCdqSAjfw7OO9RlQCE2NHQc5/JwK9w=
-    
-    az iot hub show-connection-string --hub-name $iotHubName --output table
-    HostName=ConnectedBarHub9449.azure-devices.net;SharedAccessKeyName=iothubowner;SharedAccessKey=SwxoCxBhn0pZYHfYaN+XRzLQ98vdcrNowwlc1zZaUAs=
+
 ### Create a CosmosDB in the resource group
 
+Here we need to : 
+
+- create a DocumentDB API Cosmos DB account
+- create a database
+- create a collection
 
 #### Create a DocumentDB API Cosmos DB account
 
     az cosmosdb create \
         --name $iotCosmosName \
         --kind GlobalDocumentDB \
-        --resource-group $resourceGroup \
+        --resource-group $iotResourceGroup\
         --max-interval 10 \
         --max-staleness-prefix 200 
 
@@ -110,44 +104,38 @@ Futhermore, it is also possible to create a simulated device within Azure Cloud.
         
 ### Create a service bus too connect Iot Hub with a Function App
 
-    serviceBusbNameSpace="iotServiceBusForConnectedBar"
-    serviceBusName="iotServiceBus"
+    iotServiceBusbNameSpace="iotServiceBusForConnectedBar"
+    iotServiceBusName="iotServiceBus"
     
 #### Create a Sevice Bus namespace
     
     az servicebus namespace create \
-        --name $serviceBusbNameSpace \
-        --resource-group $resourceGroup \
+        --name $iotServiceBusbNameSpace \
+        --resource-group $iotResourceGroup\
         -l $location
     
 #### Create a Service Bus Queue
 
+Here is the url of our service:
+
+    [my namespace].servicebus.windows.net/[event hub name]/publishers/[my publisher name]
+
+Let's create it : 
+
     az servicebus queue create \
-        --name $serviceBusName \
-        --namespace-name $serviceBusbNameSpace \
-        --resource-group $resourceGroup
+        --name $iotServiceBusName \
+        --namespace-name $iotServiceBusbNameSpace \
+        --resource-group $iotResourceGroup
             
 #### Get namespace connection string
-
-    az servicebus namespace authorization-rule keys list \
-            --resource-group $resourceGroup \
-            --namespace-name $serviceBusbNameSpace \
-            --name RootManageSharedAccessKey
-
-        {
-          "aliasPrimaryConnectionString": null,
-          "aliasSecondaryConnectionString": null,
-          "keyName": "RootManageSharedAccessKey",
-          "primaryConnectionString": "Endpoint=sb://iotservicebusforconnectedbar.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=3iDkINGJMkvJhamKojBtIQFH7oF73S1T4pnaOlkchtA=",
-          "primaryKey": "3iDkINGJMkvJhamKojBtIQFH7oF73S1T4pnaOlkchtA=",
-          "secondaryConnectionString": "Endpoint=sb://iotservicebusforconnectedbar.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=d09ch2h6IN5Wqtj2YMQx78z/rzJZbyX9Ux+08O9OIzk=",
-          "secondaryKey": "d09ch2h6IN5Wqtj2YMQx78z/rzJZbyX9Ux+08O9OIzk="
-        }
         
-     subscriptionId="/subscriptions/c6d07ac4-279c-4570-abac-e8e739a477d6"
-     serviceBusConnectionString="Endpoint=sb://iotservicebusforconnectedbar.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=3iDkINGJMkvJhamKojBtIQFH7oF73S1T4pnaOlkchtA=;EntityPath=iotservicebus"
-    //ajout entityPath à la fin (important)
-    //[my namespace].servicebus.windows.net/[event hub name]/publishers/[my publisher name]
+Get the connection string for the namespace
+
+        iotServiceBusConnectionString=$(az servicebus namespace authorization-rule keys list \
+           --resource-group $iotResourceGroup\
+           --namespace-name  $namespaceName \
+           --name RootManageSharedAccessKey \
+           --query primaryConnectionString --output tsv)
 
 ### Create a serverless function app in the resource group
 
@@ -156,14 +144,16 @@ First, let's create a storage account in the resource group associated to the fu
     az storage account create \
       --name $iotStorageName \
       --location $location \
-      --resource-group $resourceGroup \
+      --resource-group $iotResourceGroup\
       --sku Standard_LRS
 
 Then, let's create the function app
 
+    projectRepositoryUrl="https://github.com/Azure-Samples/functions-quickstart"
     az functionapp create \
+      --deployment-source-url $projectRepositoryUrl \
       --name $iotFunctionAppName \
-      --resource-group $resourceGroup \
+      --resource-group $iotResourceGroup\
       --storage-account $iotStorageName \
       --consumption-plan-location $location
     
@@ -175,7 +165,7 @@ Then, let's create the function app
     az iot hub routing-endpoint create \
        --connection-string $serviceBusConnectionString \
        --endpoint-name $endpointName \
-       --endpoint-resource-group $resourceGroup \
+       --endpoint-resource-group $iotResourceGroup\
        --endpoint-subscription-id $subscriptionId \
        --endpoint-type servicebusqueue \
        --hub-name $iotHubName

@@ -163,8 +163,9 @@ First, let's create a storage account in the resource group associated to the fu
       --sku Standard_LRS
 
 Then, let's create the function app
+https://github.com/Azure-Samples/functions-quickstart
 
-    projectRepositoryUrl="https://github.com/Azure-Samples/functions-quickstart"
+    projectRepositoryUrl="https://github.com/ysennoun/iot-platform-within-azure.git"
     az functionapp create \
       --deployment-source-url $projectRepositoryUrl \
       --name $iotFunctionAppName \

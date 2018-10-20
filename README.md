@@ -102,6 +102,21 @@ Here we need to :
         --db-name $iotCosmosDBName \
         --resource-group $resourceGroup
         
+#### Get the Azure Cosmos DB connection string.
+
+    iotCosmosdbEndpoint=$(az cosmosdb show \
+        --name $iotCosmosName \
+        --resource-group $resourceGroup \
+        --query documentEndpoint \
+        --output tsv)
+
+    iotCosmosdbPrimaryKey=$(az cosmosdb list-keys \
+        --name $iotCosmosName \
+        --resource-group $resourceGroup \
+        --query primaryMasterKey \
+        --output tsv)
+        
+        
 ### Create a service bus too connect Iot Hub with a Function App
 
     iotServiceBusbNameSpace="iotServiceBusForConnectedBar"
@@ -156,8 +171,15 @@ Then, let's create the function app
       --resource-group $iotResourceGroup\
       --storage-account $iotStorageName \
       --consumption-plan-location $location
+      
+#### Configure function app settings to use the Azure Cosmos DB connection string.
+
+    az functionapp config appsettings set \
+        --name $iotFunctionAppName \
+        --resource-group $iotResourceGroup \
+        --setting CosmosDB_Endpoint=$iotCosmosdbEndpoint CosmosDB_Key=$iotCosmosdbPrimaryKey
     
-## Create the strategy for routing messages through The service Bus 
+## Create the strategy for routing messages through The service Bus to Az Function
 
 ### Create endpoint for route from service bus
 

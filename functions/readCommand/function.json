@@ -1,0 +1,22 @@
+{
+  "bindings": [
+    {
+      "name": "myQueueItem",
+      "type": "serviceBusTrigger",
+      "direction": "in",
+      "queueName": "iotservicebus",
+      "connection": "iotServiceBusForConnectedBar_RootManageSharedAccessKey_SERVICEBUS",
+      "accessRights": "Manage"
+    },
+    {
+      "type": "documentDB",
+      "name": "outputDocument",
+      "databaseName": "connected-bar-cosmosdb",
+      "collectionName": "connected-bar-collection",
+      "createIfNotExists": false,
+      "connection": "connected-bar-cosmos_DOCUMENTDB",
+      "direction": "out"
+    }
+  ],
+  "disabled": false
+}

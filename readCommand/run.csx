@@ -1,5 +1,5 @@
 #r "Newtonsoft.Json"
-#load "..\model\command.csx"
+#load "..\bin\command.csx"
 using System.Net;
 using Newtonsoft.Json;
 using System;

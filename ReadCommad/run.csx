@@ -5,13 +5,6 @@ using Newtonsoft.Json;
 using System;
 using System.Threading.Tasks;
 
-public class Command
-{
-    public string table { get; set; }
-    public string drink { get; set; }
-    public Int32 sendTime { get; set; }
-}
-
 public static void Run(string myQueueItem, out object outputDocument, TraceWriter log)
 {
     log.Info($"[CONNECTED_BAR] new command received : {myQueueItem}");

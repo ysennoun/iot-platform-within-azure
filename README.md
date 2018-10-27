@@ -39,7 +39,7 @@ Let's install azure-cli
     iotCosmosName="connected-bar-cosmos"
     iotCosmosDBName="connected-bar-cosmosdb"
     iotCosmosCollectionName="connected-bar-collection"
-    iotStorageName="connectedbarstorage"
+    iotStorageName="connectedbarstorages"
     iotFunctionAppName="connected-bar-function-app"
     iotDeviceName="ConnectedBarDevice"
     

@@ -44,6 +44,5 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
 
     return commandUpdated.status != SERVED_STATUS
         ? req.CreateResponse(HttpStatusCode.BadRequest, "Could not replace")
-        : req.CreateResponse(HttpStatusCode.OK, "idCommand is " + idCommand + ", and type is " + typeItem + "; drink is " + updated.drink);
+        : req.CreateResponse(HttpStatusCode.OK, "idCommand is " + idCommand + ", and type is " + typeItem + "; drink is " + commandUpdated.drink);
 }
-

@@ -1,12 +1,19 @@
 {
   "bindings": [
     {
-      "name": "myQueueItem",
-      "type": "serviceBusTrigger",
+      "authLevel": "function",
+      "name": "req",
+      "type": "httpTrigger",
       "direction": "in",
-      "queueName": "iotservicebus",
-      "connection": "iotServiceBusForConnectedBar_RootManageSharedAccessKey_SERVICEBUS",
-      "accessRights": "Manage"
+      "methods": [
+        "get",
+        "post"
+      ]
+    },
+    {
+      "name": "$return",
+      "type": "http",
+      "direction": "out"
     }
   ],
   "disabled": false

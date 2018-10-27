@@ -1,5 +1,7 @@
 #r "Microsoft.Azure.Documents.Client"
 #r "Microsoft.Azure.WebJobs.Extensions.Http"
+#r "System.Web"
+#r "System.Web.Extensions"
 #load "..\library\model\command.csx"
 #load "..\library\dao\cosmosClient.csx"
 using System;
@@ -27,7 +29,7 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
     log.Info($"[CONNECTED_BAR - GetCommand] Http Request to get all appending commands.");
 
     IDocumentQuery<Command> query = client.CreateDocumentQuery<Command>(collectionUri)
-        .Where(p => p.status != SERVED_STATUS)
+        .Where(p => p.status == SERVED_STATUS)
         .AsDocumentQuery();
     var commandsToReturn = new List<CommandToReturn>();
     while (query.HasMoreResults)

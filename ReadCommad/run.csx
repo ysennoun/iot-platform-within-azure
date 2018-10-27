@@ -17,7 +17,8 @@ public static void Run(string myQueueItem, out object outputDocument, TraceWrite
         sendTime = command.sendTime,
         receptionTime = unixTimestamp,
         table = command.table,
-        drink = command.drink
+        drink = command.drink,
+        status = "not_served"
     };
 
     log.Info($"[CONNECTED_BAR - ReadCommand] command to store : {outputDocument}");

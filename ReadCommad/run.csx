@@ -1,5 +1,5 @@
 #r "Newtonsoft.Json"
-#load "..\model\command.csx"
+#load "..\library\model\command.csx"
 using System.Net;
 using Newtonsoft.Json;
 using System;
@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 public static void Run(string myQueueItem, out object outputDocument, TraceWriter log)
 {
-    log.Info($"[CONNECTED_BAR] new command received : {myQueueItem}");
+    log.Info($"[CONNECTED_BAR - ReadCommand] new command received : {myQueueItem}");
 
     var command = JsonConvert.DeserializeObject<Command>(myQueueItem);
     Guid uuidCommand = Guid.NewGuid();
@@ -20,5 +20,5 @@ public static void Run(string myQueueItem, out object outputDocument, TraceWrite
         drink = command.drink
     };
 
-    log.Info($"[CONNECTED_BAR] command to store in cosmos : {outputDocument}");
+    log.Info($"[CONNECTED_BAR - ReadCommand] command to store : {outputDocument}");
 }

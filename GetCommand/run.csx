@@ -1,10 +1,15 @@
 #r "Microsoft.Azure.Documents.Client"
 #r "Microsoft.Azure.WebJobs.Extensions.Http"
+#load "..\library\model\command.csx"
+#load "..\library\dao\cosmosClient.csx"
 using System;
 using System.Configuration;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Collections.Generic;
+using System.Web.UI;
+using System.Web.Script.Serialization;
 using System.Threading.Tasks;
 using Microsoft.Azure.Documents.Client;
 using Microsoft.Azure.Documents.Linq;
@@ -14,50 +19,32 @@ using Microsoft.Azure.WebJobs.Host;
 
 
 private static DocumentClient client = GetCustomClient();
-private static DocumentClient GetCustomClient()
-{
-    DocumentClient customClient = new DocumentClient(
-        new Uri("https://connected-bar-cosmos.documents.azure.com:443/"),
-        "3eBsUC8Bc81hCTsDbqftTacte4Co3z84GJWvvXryMb0D2YZGsp1k6Ea36YtA0Xz0YljKLUhvN2uZp3dWyHLtww==",
-        new ConnectionPolicy
-        {
-            ConnectionMode = ConnectionMode.Direct,
-            ConnectionProtocol = Protocol.Tcp,
-            // Customize retry options for Throttled requests
-            RetryOptions = new RetryOptions()
-            {
-                MaxRetryAttemptsOnThrottledRequests = 10,
-                MaxRetryWaitTimeInSeconds = 30
-            }
-        });
+private static Uri collectionUri = GetCollectionUri();
+private static string SERVED_STATUS = "served";
 
-    return customClient;
-}
-
-public class Command
+public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceWriter log)
 {
-    public string id { get; set; }
-    public Int32 sendTime { get; set; }
-    public Int32 receptionTime { get; set; }
-    public string table { get; set; }
-    public string drink { get; set; }
-}
+    log.Info($"[CONNECTED_BAR - GetCommand] Http Request to get all appending commands.");
 
-public static async Task<HttpResponseMessage> Run(
-    HttpRequestMessage req,
-    TraceWriter log)
-{
-    Uri collectionUri = UriFactory.CreateDocumentCollectionUri("connected-bar-cosmosdb", "connected-bar-collection");
     IDocumentQuery<Command> query = client.CreateDocumentQuery<Command>(collectionUri)
-        .Where(p => p.drink == "jus")
+        .Where(p => p.status != SERVED_STATUS)
         .AsDocumentQuery();
-
+    var commandsToReturn = new List<CommandToReturn>();
     while (query.HasMoreResults)
     {
         foreach (Command result in await query.ExecuteNextAsync())
         {
             log.Info(result.drink.ToString());
+            commandsToReturn.Add(new CommandToReturn() {
+                id = result.id.ToString(),
+                drink = result.drink.ToString()
+                }
+            );
         }
     }
-    return req.CreateResponse(HttpStatusCode.BadRequest, "Error message");
+    var serializer = new JavaScriptSerializer();
+    var serializedResult = serializer.Serialize(commandsToReturn);
+
+    log.Info($"[CONNECTED_BAR - GetCommand] Appending commands : {serializedResult.ToString()}");
+    return req.CreateResponse(HttpStatusCode.OK, serializedResult.ToString());
 }

@@ -13,4 +13,5 @@ public class CommandToReturn
 {
     public string id { get; set; }
     public string drink { get; set; }
+    public string sendTime { get; set; }
 }

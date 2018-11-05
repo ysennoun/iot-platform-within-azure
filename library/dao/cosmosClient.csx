@@ -35,3 +35,5 @@ public static DocumentClient GetCustomClient()
 public static Uri GetCollectionUri() {
     return UriFactory.CreateDocumentCollectionUri("connected-bar-cosmosdb", "connected-bar-collection");
 }
+
+//https://blog.siliconvalve.com/2017/10/24/azure-api-management-200-ok-response-but-no-backend-traffic/

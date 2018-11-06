@@ -39,8 +39,8 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
             log.Info(result.drink.ToString());
             commandsToReturn.Add(new CommandToReturn() {
                 id = result.id.ToString(),
-                drink = convertTimestampToDate(result.drink),
-                sendTime = result.sendTime.ToString()
+                drink = result.drink.ToString(),
+                sendTime = convertTimestampToDate(result.sendTime),
                 }
             );
         }

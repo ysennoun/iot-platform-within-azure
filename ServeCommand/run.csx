@@ -38,6 +38,9 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
 
     Command commandToUpdate = (dynamic)document;
     commandToUpdate.status = SERVED_STATUS;
+    Int32 unixTimestamp = (Int32)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
+    commandToUpdate.servedTime = unixTimestamp;
+    commandToUpdate.durationToServe = commandToUpdate.servedTime - commandToUpdate.sendTime;
 
     Microsoft.Azure.Documents.Document documentUpdated = (dynamic) await client.ReplaceDocumentAsync(document.SelfLink, commandToUpdate);
     Command commandUpdated = (dynamic)documentUpdated;

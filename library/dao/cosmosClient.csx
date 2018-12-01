@@ -14,14 +14,15 @@ using Microsoft.Azure.WebJobs.Host;
 
 public static DocumentClient GetCustomClient()
 {
+    string cosmosEndpoint = System.Environment.GetEnvironmentVariable("CosmosDB_Endpoint");
+    string cosmosKey = System.Environment.GetEnvironmentVariable("CosmosDB_Key");
     DocumentClient customClient = new DocumentClient(
-        new Uri("https://connected-bar-cosmos.documents.azure.com:443/"),
-        "3eBsUC8Bc81hCTsDbqftTacte4Co3z84GJWvvXryMb0D2YZGsp1k6Ea36YtA0Xz0YljKLUhvN2uZp3dWyHLtww==",
+        new Uri(cosmosEndpoint),
+        cosmosKey,
         new ConnectionPolicy
         {
             ConnectionMode = ConnectionMode.Direct,
             ConnectionProtocol = Protocol.Tcp,
-            // Customize retry options for Throttled requests
             RetryOptions = new RetryOptions()
             {
                 MaxRetryAttemptsOnThrottledRequests = 10,

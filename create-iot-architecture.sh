@@ -5,6 +5,8 @@
 #########################################################################
 
 ########################### General configuration ############################
+echo "########################### General configuration ############################"
+
 ### Add the IOT Extension for Azure CLI. You only need to install this the first time. You need it to create the device identity.
 extension_check=$(az extension list | grep azure-cli-iot-ext)
 if [ -z "$extension_check" ]; then
@@ -21,28 +23,28 @@ export IOT_COSMOS_DB_NAME="connected_bar_cosmosdb"
 export IOT_COSMOS_COLLECtiON_NAME="connected_bar_collection"
 export IOT_STORAGE_NAME="storage_for_connected_bar"
 export IOT_FUNCTIONAPP_NAME="connected_bar_function_app"
-export IOT_DEVICE_NAME="connected_bar_device"
 export IOT_EDGE_DEVICE_NAME="myEdgeDevice"
 export PROJECT_REPOSITORY_URL="https://github.com/ysennoun/iot-platform-within-azure.git"
+export IOT_CONTAINER_REGISTRY="IotEdgeRegistery"
 
 ## Create the resource group to be used by all the resources
-az group create --name $IOT_RESOURCE_GROUP--location $LOCATION
+az group create --name $IOT_RESOURCE_GROUP --location $LOCATION
 
 ## Create the IoT hub. The IoT hub name must be globally unique, so add a random number to the end.
 az iot hub create --name IOT_HUB_NAME --resource-group $IOT_RESOURCE_GROUP --sku F1 --location $LOCATION
 IOT_HUB_CONNECTION_STRING=$(az iot hub show-connection-string --hub-name $iotHubName --output tsv)
 
 ########################### IoT hub ############################
+echo "########################### IoT hub ############################"
 ### Add a consumer group to the IoT hub.
 az iot hub consumer-group create --hub-name $IOT_HUB_NAME --name IOT_HUB_CONSUMER_GROUP
 
 ## Create an IoT device and an IoT edge device. Then, we retrieve connection strings
-az iot hub device-identity create --device-id $IOT_DEVICE_NAME --hub-name $IOT_HUB_NAME
 az iot hub device-identity create --hub-name $IOT_HUB_NAME --device-id $IOT_EDGE_DEVICE_NAME --edge-enabled
-DEVICE_CONNECTION_STRING=$(az iot hub device-identity show-connection-string --hub-name $IOT_HUB_NAME --device-id $IOT_DEVICE_NAME --output tsv)
 EDGE_CONNECTION_STRING=$(az iot hub device-identity show-connection-string --device-id $IOT_EDGE_DEVICE_NAME --hub-name $IOT_HUB_NAME --output tsv)
 
 ########################### CosmosDB ############################
+echo "########################### CosmosDB ############################"
 ## Create a DocumentDB API Cosmos DB account
 az cosmosdb create \
     --name $IOT_COSMOS_NAME \
@@ -77,6 +79,7 @@ IOT_COSMOSDB_PRIMARY_KEY=$(az cosmosdb list-keys \
     --output tsv)
 
 ########################### Function App ############################
+echo "########################### Function App ############################"
 ### Create a serverless function app
 az storage account create \
   --name $IOT_STORAGE_NAME \
@@ -97,8 +100,20 @@ az functionapp config appsettings set \
     --resource-group $IOT_RESOURCE_GROUP \
     --setting CosmosDB_Endpoint=$IOT_COSMOSDB_ENDPOINT  \
        CosmosDB_Key=$IOT_COSMOSDB_PRIMARY_KEY \
-       IotHub_Key_Key=$IOT_HUB_CONNECTION_STRING
+       CosmosDB_Name=$IOT_COSMOS_DB_NAME \
+       CosmosDB_Collection_Name=$IOT_COSMOS_COLLECtiON_NAME \
+       IotHub_Key=$IOT_HUB_CONNECTION_STRING \
+
+########################### Container Registry ############################
+echo "########################### Container Registry ############################"
+az acr create --resource-group $IOT_RESOURCE_GROUP --name $IOT_CONTAINER_REGISTRY --sku Basic
+CONTAINER_REGISTRY_ADDRESS=$(az acr show --name $IOT_CONTAINER_REGISTRY --query loginServer)
+CONTAINER_REGISTRY_PASSWORD=$(az acr credential show --name $IOT_CONTAINER_REGISTRY --query "passwords[0].value")
 
 ########################### Output ############################
-echo "DEVICE_CONNECTION_STRING="$DEVICE_CONNECTION_STRING
+echo "########################### Output ############################"
+echo "IOT_HUB_CONNECTION_STRING="$IOT_HUB_CONNECTION_STRING
 echo "EDGE_CONNECTION_STRING="$EDGE_CONNECTION_STRING
+echo "CONTAINER_REGISTRY_ADDRESS="$CONTAINER_REGISTRY_ADDRESS
+echo "CONTAINER_REGISTRY_NAME="$IOT_CONTAINER_REGISTRY
+echo "CONTAINER_REGISTRY_PASSWORD="$CONTAINER_REGISTRY_PASSWORD

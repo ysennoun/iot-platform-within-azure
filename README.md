@@ -2,11 +2,9 @@
 
 ## Objective
 
-The main objective of this project is to build an IoT plateform with Azure cloud.
-
-In our case the IoT platform is a connected bar. Indeed, through a raspberry pi with an integrated camera you will be able to order a new drink by just putting your drink in front of the camera.
-
-A machine learning model is installed on the device which recognized the type of drink and requests a remote barter in the cloud to prepare the same drink.
+The main objective of this project is to build an IoT plateform with Azure cloud from a fun use case. It deals with a `connected bar`.
+Indeed, from a raspberry pi with an integrated camera you will be able to order a new drink by just putting your drink in front of the camera.
+A machine learning model is installed on the device which recognizes the kind of drink and requests to a remote barter in the cloud to prepare the same drink.
 
 The following picture shows you how it works.
 
@@ -30,7 +28,20 @@ About the three functions we created :
 
 - ReadCommand : receive command and store in data base with status "not served"
 - GetCommand : return all unserved command
-- ServeCommand : for a command, change status to "served"
+- ServeCommand : for a command, change status to `served
+
+## Architecture in the device
+
+To install IoT Edge in your raspberry pi, you have to follow this [link](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-install-iot-edge-linux).
+
+In our use case `smart-bartender`, here is the architecture of modules installed in ioT Edge : 
+
+![Iot Architecture](img/architecture-iot-edge.png)
+
+There are two modules :
+
+- Image classifier : HTTP server that can receive image and classify it thanks to a deep learning model
+- Camera Capture : read video frame from pi camera and send a HTTP to Image classifier`. Then, send response to IoT Hub
 
 ## Installation
 
@@ -55,10 +66,8 @@ Run the script to install all services in the cloud :
     
 You will get as output :
 
-- Connection string for device named "connected_bar_device"
-- Connection string for edge device that you will use for installation of Iot Egde
-
-In order to install Iot Edge in your raspberry pi, you have to follow this [link](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-install-iot-edge-linux).
-
-    
-  
+- Connection string of iot hub that you will use for installation of Iot Egde in module `smart-bartender-iot-edge`
+- Connection string of edge device that you will use for installation of Iot Egde in module `smart-bartender-iot-edge`
+- Container registry address to be used in module `smart-bartender-iot-edge`
+- Container registry name to be used in module `smart-bartender-iot-edge`
+- Container registry password to be used in module module `smart-bartender-iot-edge`
